@@ -1,0 +1,21 @@
+{
+  "name": "markdown-to-googledoc",
+  "version": "0.1.0",
+  "description": "Markdown <-> Google Docs conversion library with a GitHub Pages demo app",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./browser": "./src/browser-entry.js"
+  },
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "markdown",
+    "google-docs",
+    "converter",
+    "javascript"
+  ],
+  "license": "MIT"
+}

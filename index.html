@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Markdown <-> Google Docs Converter</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <h1>Markdown <span>&lt;-&gt;</span> Google Docs</h1>
+        <p>Static single-page app and reusable JavaScript conversion library.</p>
+      </header>
+
+      <section class="grid">
+        <article class="panel">
+          <h2>Markdown Input</h2>
+          <textarea id="markdown-input" spellcheck="false"></textarea>
+          <button id="markdown-to-docs">Convert Markdown to Docs Requests</button>
+        </article>
+
+        <article class="panel">
+          <h2>Google Docs JSON Input</h2>
+          <textarea id="docs-input" spellcheck="false"></textarea>
+          <button id="docs-to-markdown">Convert Docs JSON to Markdown</button>
+        </article>
+      </section>
+
+      <section class="panel output-panel">
+        <h2>Conversion Output</h2>
+        <pre id="output" aria-live="polite"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

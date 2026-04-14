@@ -1,0 +1,127 @@
+:root {
+  --bg: #f7f3ea;
+  --surface: #fffef8;
+  --surface-alt: #fbf7ed;
+  --ink: #2a2420;
+  --ink-soft: #5b4f45;
+  --line: #d9cdbf;
+  --accent: #8f3d2e;
+  --accent-soft: #e9cbc4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 10% 0%, #fff7df 0%, transparent 32%),
+    radial-gradient(circle at 90% 80%, #f8dfc9 0%, transparent 28%),
+    var(--bg);
+}
+
+.page {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 2rem auto 3rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.hero {
+  background: linear-gradient(135deg, var(--surface), var(--surface-alt));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 8px 24px rgba(42, 36, 32, 0.08);
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+}
+
+.hero h1 span {
+  color: var(--accent);
+}
+
+.hero p {
+  margin: 0.6rem 0 0;
+  color: var(--ink-soft);
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.panel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+textarea,
+pre {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  font-family: Consolas, "Courier New", monospace;
+}
+
+textarea {
+  min-height: 260px;
+  resize: vertical;
+}
+
+pre {
+  min-height: 140px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+button {
+  margin-top: 0.75rem;
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.95rem;
+  color: #fff;
+  background: linear-gradient(120deg, #8f3d2e, #b7503c);
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.03);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 880px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page {
+    width: min(1120px, calc(100% - 1rem));
+    margin: 1rem auto 2rem;
+  }
+}
