@@ -74,56 +74,63 @@ function applyInlineMarkdown(text) {
 function markdownToRichHtml(markdown) {
   const lines = String(markdown ?? "").split("\n");
   const parts = [];
-  let listType = "";
+  const listStack = [];
 
-  const closeList = () => {
-    if (listType) {
-      parts.push(`</${listType}>`);
-      listType = "";
+  const toIndentLevel = (prefix) => {
+    const expanded = String(prefix || "").replace(/\t/g, "    ");
+    return Math.floor(expanded.length / 2);
+  };
+
+  const closeListsToDepth = (depth) => {
+    while (listStack.length > depth) {
+      const tag = listStack.pop();
+      parts.push(`</${tag}>`);
     }
+  };
+
+  const openList = (tag) => {
+    parts.push(`<${tag}>`);
+    listStack.push(tag);
   };
 
   for (const line of lines) {
     if (!line.trim()) {
-      closeList();
+      closeListsToDepth(0);
       continue;
     }
 
     const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
     if (headingMatch) {
-      closeList();
+      closeListsToDepth(0);
       const level = headingMatch[1].length;
       parts.push(`<h${level}>${applyInlineMarkdown(headingMatch[2])}</h${level}>`);
       continue;
     }
 
-    const unorderedMatch = line.match(/^\s*[-*+]\s+(.+)$/);
-    if (unorderedMatch) {
-      if (listType !== "ul") {
-        closeList();
-        listType = "ul";
-        parts.push("<ul>");
+    const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
+    if (listMatch) {
+      const depth = toIndentLevel(listMatch[1]) + 1;
+      const tag = /\d+\./.test(listMatch[2]) ? "ol" : "ul";
+
+      closeListsToDepth(depth);
+      while (listStack.length < depth) {
+        openList(tag);
       }
-      parts.push(`<li>${applyInlineMarkdown(unorderedMatch[1])}</li>`);
+
+      if (listStack[listStack.length - 1] !== tag) {
+        closeListsToDepth(depth - 1);
+        openList(tag);
+      }
+
+      parts.push(`<li>${applyInlineMarkdown(listMatch[3])}</li>`);
       continue;
     }
 
-    const orderedMatch = line.match(/^\s*\d+\.\s+(.+)$/);
-    if (orderedMatch) {
-      if (listType !== "ol") {
-        closeList();
-        listType = "ol";
-        parts.push("<ol>");
-      }
-      parts.push(`<li>${applyInlineMarkdown(orderedMatch[1])}</li>`);
-      continue;
-    }
-
-    closeList();
+    closeListsToDepth(0);
     parts.push(`<p>${applyInlineMarkdown(line)}</p>`);
   }
 
-  closeList();
+  closeListsToDepth(0);
   return parts.join("\n");
 }
 
@@ -159,8 +166,11 @@ function makeParagraphBlock(text, options = {}) {
     elements: [{ textRun: { content: `${value}\n` } }],
   };
 
-  if (options.bullet) {
-    paragraph.bullet = {};
+  if (options.listType) {
+    paragraph.bullet = {
+      nestingLevel: Number(options.nestingLevel || 0),
+      listType: options.listType,
+    };
   }
 
   return { paragraph };
@@ -182,6 +192,11 @@ function textToGoogleDocsDocument(plainText) {
   const lines = String(plainText ?? "").split("\n");
   const content = [];
 
+  const toIndentLevel = (prefix) => {
+    const expanded = String(prefix || "").replace(/\t/g, "    ");
+    return Math.floor(expanded.length / 2);
+  };
+
   for (const line of lines) {
     const normalized = line.replace(/\r/g, "");
     const heading = detectHeadingFromText(normalized);
@@ -191,9 +206,15 @@ function textToGoogleDocsDocument(plainText) {
       continue;
     }
 
-    const listMatch = normalized.match(/^\s*(?:[-*+]\s+|\d+\.\s+)(.+)$/);
+    const listMatch = normalized.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
     if (listMatch) {
-      content.push(makeParagraphBlock(listMatch[1], { bullet: true }));
+      const marker = listMatch[2];
+      content.push(
+        makeParagraphBlock(listMatch[3], {
+          listType: /\d+\./.test(marker) ? "ordered" : "unordered",
+          nestingLevel: toIndentLevel(listMatch[1]),
+        })
+      );
       continue;
     }
 
@@ -208,12 +229,17 @@ function htmlToGoogleDocsDocument(html, plainText = "") {
   const parsed = parser.parseFromString(html, "text/html");
   const blocks = [];
 
-  const pushTextBlock = (text, styleType = "NORMAL_TEXT", bullet = false) => {
+  const pushTextBlock = (
+    text,
+    styleType = "NORMAL_TEXT",
+    listType = "",
+    nestingLevel = 0
+  ) => {
     const cleaned = String(text ?? "").replace(/\s+/g, " ").trim();
     if (!cleaned) {
       return;
     }
-    blocks.push(makeParagraphBlock(cleaned, { styleType, bullet }));
+    blocks.push(makeParagraphBlock(cleaned, { styleType, listType, nestingLevel }));
   };
 
   const readTextWithoutNestedLists = (item) => {
@@ -224,7 +250,7 @@ function htmlToGoogleDocsDocument(html, plainText = "") {
     return clone.textContent || "";
   };
 
-  const walk = (node) => {
+  const walk = (node, nestingLevel = 0) => {
     if (!(node instanceof Element)) {
       return;
     }
@@ -243,12 +269,13 @@ function htmlToGoogleDocsDocument(html, plainText = "") {
     }
 
     if (tag === "ul" || tag === "ol") {
+      const listType = tag === "ol" ? "ordered" : "unordered";
       const items = Array.from(node.children).filter(
         (child) => child instanceof Element && child.tagName.toLowerCase() === "li"
       );
 
       for (const item of items) {
-        pushTextBlock(readTextWithoutNestedLists(item), "NORMAL_TEXT", true);
+        pushTextBlock(readTextWithoutNestedLists(item), "NORMAL_TEXT", listType, nestingLevel);
 
         for (const child of Array.from(item.children)) {
           if (!(child instanceof Element)) {
@@ -256,7 +283,7 @@ function htmlToGoogleDocsDocument(html, plainText = "") {
           }
           const childTag = child.tagName.toLowerCase();
           if (childTag === "ul" || childTag === "ol") {
-            walk(child);
+            walk(child, nestingLevel + 1);
           }
         }
       }
@@ -269,7 +296,7 @@ function htmlToGoogleDocsDocument(html, plainText = "") {
     }
 
     for (const child of Array.from(node.children)) {
-      walk(child);
+      walk(child, nestingLevel);
     }
   };
 
