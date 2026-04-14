@@ -71,6 +71,21 @@ body {
   font-size: 1.05rem;
 }
 
+.output-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.output-head button {
+  margin-top: 0;
+  width: auto;
+  min-width: 120px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.86rem;
+}
+
 textarea,
 pre {
   width: 100%;
@@ -90,6 +105,7 @@ textarea {
 
 pre {
   min-height: 140px;
+  max-height: 360px;
   margin: 0;
   overflow: auto;
   white-space: pre-wrap;
