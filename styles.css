@@ -76,6 +76,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .output-head button {
@@ -87,7 +88,7 @@ body {
 }
 
 textarea,
-pre {
+.output-box {
   width: 100%;
   border: 1px solid var(--line);
   background: #fff;
@@ -103,12 +104,38 @@ textarea {
   resize: vertical;
 }
 
-pre {
+.output-box {
   min-height: 140px;
-  max-height: 360px;
+  height: 360px;
   margin: 0;
   overflow: auto;
   white-space: pre-wrap;
+}
+
+.output-box.is-rich {
+  white-space: normal;
+}
+
+.output-box h1,
+.output-box h2,
+.output-box h3,
+.output-box h4,
+.output-box h5,
+.output-box h6 {
+  margin: 0 0 0.6rem;
+}
+
+.output-box p,
+.output-box ul,
+.output-box ol {
+  margin: 0 0 0.65rem;
+}
+
+.output-box code {
+  background: #f3ece1;
+  border: 1px solid #e2d8c8;
+  border-radius: 4px;
+  padding: 0.05rem 0.25rem;
 }
 
 button {
